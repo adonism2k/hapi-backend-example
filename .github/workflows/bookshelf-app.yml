@@ -9,10 +9,11 @@ on:
 
 jobs:
   build:
+    name: Build App
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 18.x]
+        node-version: 14
 
     steps:
       - uses: actions/checkout@v3
@@ -21,13 +22,33 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-
       - name: Install depedencies
         run: npm ci
       - name: Building the application
-        run: npm run build --if-present
-      - name: Create fresh database
-        run: npx prisma migrate reset && npx prisma db push
+        run: npm run build
+
+  deploy:
+    name: Deploy To Heroku
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+  
+  api-tests:
+    name: Postman API Test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
       - name: Install Postman CLI
         run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
