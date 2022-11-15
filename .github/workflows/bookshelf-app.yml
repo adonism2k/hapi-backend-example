@@ -9,31 +9,46 @@ on:
 
 jobs:
   build:
+    name: Build App
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.x, 16.x, 18.x]
 
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 14.x
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '14.x'
           cache: 'npm'
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: npx prisma migrate dev --name bookshelf
+      - name: Install depedencies
+        run: npm ci
+      - name: Building the application
+        run: npm run build
 
-  automated-api-tests:
+  deploy:
+    name: Deploy To Heroku
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: build
     runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+  
+  api-tests:
+    name: Postman API Test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: deploy
+    runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
       - name: Install Postman CLI
-        run: |
-          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
-      - name: Run API tests
-        run: |
-          postman collection run "12125462-49adb49d-5ed9-47b5-ada2-db8b42eaf866" -e "12125462-8004cb65-1f61-4cbe-b47c-dedac12d9fc6"
+      - name: Run API test
+        run: postman collection run "12125462-49adb49d-5ed9-47b5-ada2-db8b42eaf866" -e "12125462-8004cb65-1f61-4cbe-b47c-dedac12d9fc6"
