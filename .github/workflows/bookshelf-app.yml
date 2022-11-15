@@ -21,19 +21,17 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: npx prisma migrate dev --name bookshelf
 
-  automated-api-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Postman CLI
-        run: |
-          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
-      - name: Login to Postman CLI
+      - name: Install depedencies
+        run: npm ci
+
+      - name: Building the application
+        run: npm run build --if-present
+
+      - name: Create fresh database
+        run: npx prisma migrate reset && npx prisma db push
+        
+      - name: Automated api tests
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
-      - name: Run API tests
-        run: |
-          postman collection run "12125462-49adb49d-5ed9-47b5-ada2-db8b42eaf866" -e "12125462-8004cb65-1f61-4cbe-b47c-dedac12d9fc6"
+        run: postman collection run "12125462-49adb49d-5ed9-47b5-ada2-db8b42eaf866" -e "12125462-8004cb65-1f61-4cbe-b47c-dedac12d9fc6"
