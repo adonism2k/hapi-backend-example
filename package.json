@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "prisma db push && prisma generate && tsc",
+    "build": "prisma generate && tsc",
     "dev": "ts-node-dev --respawn ./src/index.ts",
     "start": "node dist/index"
   },
