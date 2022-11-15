@@ -165,7 +165,7 @@ async function createBookHandler(request: Hapi.Request, h: Hapi.ResponseToolkit)
   }
 }
 
-async function updateBookHandler(request: Hapi.Request, h: Hapi.ResponseToolkit) {
+async function updateBookHandler(request: Hapi.Request, h: Hapi.ResponseToolkit): Promise<Hapi.ResponseObject> {
   const { prisma } = request.server.app
   const payload = request.payload as any
   const bookId = request.params.bookId
