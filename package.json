@@ -5,7 +5,7 @@
   "scripts": {
     "build": "prisma generate && tsc",
     "dev": "ts-node src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index"
   },
   "dependencies": {
     "@hapi/hapi": "21.0.0",
