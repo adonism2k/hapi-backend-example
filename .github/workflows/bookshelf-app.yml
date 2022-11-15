@@ -24,14 +24,13 @@ jobs:
 
       - name: Install depedencies
         run: npm ci
-
       - name: Building the application
         run: npm run build --if-present
-
       - name: Create fresh database
         run: npx prisma migrate reset && npx prisma db push
-        
-      - name: Automated api tests
+      - name: Install Postman CLI
         run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+      - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Run API test
         run: postman collection run "12125462-49adb49d-5ed9-47b5-ada2-db8b42eaf866" -e "12125462-8004cb65-1f61-4cbe-b47c-dedac12d9fc6"
